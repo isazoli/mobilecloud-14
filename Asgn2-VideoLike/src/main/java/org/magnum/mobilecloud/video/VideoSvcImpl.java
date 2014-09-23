@@ -54,6 +54,25 @@ public class VideoSvcImpl {
 			videoRepo.save(v);
 		}
 	}
+	
+	@RequestMapping(value = VIDEO_SVC_PATH + "/{id}/unlike", method = RequestMethod.POST)
+	public @ResponseBody
+	void unlikeVideo(@PathVariable(value = "id") long id,
+			HttpServletResponse response, Principal user) {
+		final Video v = videoRepo.findOne(id);
+		String activeUserName = user.getName();
+		if (v == null) {
+			response.setStatus(SC_NOT_FOUND);
+		} else if (!v.getUsersWithLikes().contains(activeUserName)) {
+			response.setStatus(SC_BAD_REQUEST);
+		} else {
+			final HashSet<String> newLikers = Sets.newHashSet(v.getUsersWithLikes());
+			newLikers.remove(activeUserName);
+			v.setUsersWithLikes(newLikers);
+			v.setLikes(v.getLikes() - 1);
+			videoRepo.save(v);
+		}
+	}
 
 	// @RequestMapping(value = VIDEO_SVC_PATH + SEPARATOR + "{id}" + DATA,
 	// method = RequestMethod.GET)
